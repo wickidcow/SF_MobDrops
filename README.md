@@ -1,51 +1,43 @@
 <div align="center">
 
-# 🧟 SFMobDrops Legacy 💀
+# 🧟💀 SFMobDrops — Slimefun Legacy
 
-### Turn Minecraft mobs into configurable sources of Slimefun loot.
+**Turn Minecraft mobs into configurable sources of Slimefun loot.**
 
-**🧟 Mob** → **⚔️ Defeated** → **💀 RIP** → **⚙️✨ Slimefun Drops!**
+**🧟 Mob → ⚔️ Defeated → 💀 RIP → ⚙️✨ Slimefun Drops!**
 
-Maintained for **Slimefun Legacy**, modern **Paper 26.2**, and the AlbionMC ecosystem.
+![Slimefun Legacy](https://img.shields.io/badge/Slimefun-Legacy-6bd425?style=for-the-badge)
+![Paper 26.2](https://img.shields.io/badge/Paper-26.2-blue?style=for-the-badge)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
+![Maintained for AlbionMC.com](https://img.shields.io/badge/Maintained%20for-albionmc.com-7b68ee?style=for-the-badge)
 
 </div>
 
----
+> [!IMPORTANT]
+> This is an **unofficial Slimefun Legacy maintenance fork** developed for use on **albionmc.com**. The original SFMobDrops concept and authorship remain with its original creator.
 
-## 💚 A Tribute to WalshyDev
+## 💚 A tribute to WalshyDev
 
-**SFMobDrops was originally created by WalshyDev.**
+**SFMobDrops was originally created by WalshyDev (Daniel Walsh).**
 
-This Legacy fork exists because the original addon had a great, simple idea: let server owners decide which Slimefun items mobs can drop without turning the feature into an unnecessarily complicated system.
+The original addon had a wonderfully simple idea: let server owners decide which Slimefun items mobs can drop without turning the feature into an unnecessarily complicated system. This fork exists to **preserve that idea, its configuration style, and WalshyDev's work** while keeping it usable on current Slimefun Legacy servers.
 
-The goal of this fork is to **preserve WalshyDev's original work and design**, keep the addon recognizable, and make it usable again on current Minecraft and Slimefun Legacy servers.
+Original authorship is not replaced by this fork. The maintenance work is a continuation of the project, not a claim to have created it.
 
-Original authorship and credit remain with **WalshyDev**. This repository is a compatibility and maintenance fork, not a replacement for the original project.
+## 🎯 What does SFMobDrops do?
 
----
+SFMobDrops lets a server owner add **Slimefun items to mob death drops** through configuration.
 
-## 🧪 What does SFMobDrops do?
+You can configure:
 
-SFMobDrops lets a server owner add **Slimefun items to normal mob death drops** through configuration.
+- specific mob types;
+- global drops that may come from all mobs;
+- multiple possible Slimefun drops per mob;
+- independent chance and amount values;
+- custom-name filters;
+- persistent-data/tag filters for specialized rules.
 
-You can use it to make mobs drop things such as:
-
-- ⚙️ Slimefun machine components
-- ✨ Magical items and materials
-- 🧪 Dusts, resources, and crafting ingredients
-- 💎 Rare Slimefun loot
-- 🧟 Special drops from specific mob types
-- 👑 Special drops from custom-named mobs
-- 🏷️ Drops restricted by persistent-data tags
-- 🌍 Global drops that can come from **all mobs**
-
-Each configured drop can have its own **chance** and **amount**, and a mob can have **multiple possible Slimefun drops**.
-
----
-
-## 🎯 Example
-
-A zombie can have a 5% chance to drop Magical Zombie Pills and a separate 1% chance to drop Iron Dust:
+Example:
 
 ```yaml
 drops:
@@ -59,98 +51,59 @@ drops:
         amount: 1
 ```
 
-You can also create a drop that applies to every mob:
+## 🧪 Slimefun Legacy maintenance
 
-```yaml
-drops:
-  - entity: ALL
-    drops:
-      - slimefunItem: COPPER_DUST
-        chance: 1
-        amount: 1
-```
+- modern Paper 26.2 / Slimefun Legacy build target;
+- modern Java build tooling;
+- English configuration and command output;
+- removal of the obsolete external self-updater;
+- preservation of the established configuration format, including older single-drop definitions;
+- multiple matching drop definitions can contribute to the same mob;
+- corrected custom-name matching;
+- hardened chance/amount parsing;
+- safer GUI sizing on modern Paper;
+- Slimefun remains a provided dependency instead of being bundled into the addon.
 
-Optional `name` and `nbtTag` filters allow much more specific drop rules.
-
----
-
-## 🛠️ Slimefun Legacy Edition
-
-This fork modernizes the original addon for the current Slimefun Legacy stack while trying to keep its behavior familiar.
-
-### Current target
-
-- **Minecraft / Paper 26.2**
-- **Java 25** build environment
-- **Java 21** plugin bytecode
-- **Slimefun Legacy-compatible Slimefun4 API**
-- English configuration and command output
-
-### Legacy improvements
-
-- Updated from the old **Spigot 1.17 / Slimefun RC-30** build environment.
-- Removed the obsolete Blob Builds self-updater so a Legacy build cannot silently replace itself with an incompatible upstream build.
-- Updated the bundled bStats dependency.
-- Removed Lombok and annotation-processor reliance from the plugin's small data models for a more dependable modern Java build.
-- Preserved the existing configuration format, including the older single-drop format.
-- Multiple matching drop definitions can now contribute drops to the same mob instead of stopping at the first matching rule.
-- Fixed custom-name matching so a rule requiring a mob name does not accidentally match an unnamed mob.
-- Hardened drop chance and amount parsing.
-- Protected the mob-drop GUI from invalid inventory sizes on modern Paper.
-- Keeps Slimefun itself as a provided dependency rather than bundling the Slimefun core inside this addon.
-
----
-
-## 📦 Builds
-
-GitHub Actions builds a directly usable file named:
-
-```text
-SF_MobDrops_Legacy_v1.0.0.jar
-```
-
-The Actions workflow uses **direct artifact mode**, so the downloadable build is the actual `.jar` file — **not** a `.jar.zip` wrapper that has to be extracted first.
-
-Tagged releases also attach the same raw JAR directly to the GitHub Release.
-
----
-
-## 🎮 Commands
+### Commands
 
 | Command | Purpose |
-| --- | --- |
+|---|---|
 | `/mobdrops reload` | Reload the mob-drop configuration |
 | `/mobdrops list` | Open the configured mob-drop list |
 | `/sfmobdrops` | Alias for `/mobdrops` |
 
 Administrative commands require `sfmobdrops.admin`.
 
+## ❤️ Credits & project lineage
+
+- **WalshyDev / Daniel Walsh** — original creator of SFMobDrops and the original addon concept/codebase.
+- **SFMobDrops community users and contributors** — configuration examples, testing, and continued use of the addon.
+- **Slimefun developers and contributors** — for the Slimefun platform and API.
+- **wickidcow / Slimefun Legacy** — current compatibility and preservation maintenance for modern servers and albionmc.com.
+
+Please preserve the original copyright and attribution when redistributing or creating additional forks.
+
+## 📜 License
+
+SFMobDrops is licensed under the **MIT License**, not GNU GPLv3. The repository's `LICENSE` retains the **2020 Daniel Walsh** copyright notice.
+
+When copying or distributing copies or substantial portions of the software, preserve the copyright and permission notice required by the MIT License. The software is provided **“AS IS”**, without warranty, as stated in that license.
+
+> [!NOTE]
+> Many Slimefun addons are GPLv3, but **SFMobDrops is MIT-licensed**. This maintenance fork intentionally keeps the actual upstream license rather than applying a different license just for consistency.
+
+## ⚖️ Independence & trademark notice
+
+**NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.**
+
+SFMobDrops, Slimefun Legacy, and this maintenance fork are independent community projects. They are not sponsored, endorsed, approved, or operated by Mojang Studios or Microsoft. Minecraft-related names, brands, and assets remain the property of their respective rights holders.
+
+This repository is also not represented as an official release of WalshyDev, the original Slimefun developers, or any other upstream party unless explicitly stated by them.
+
 ---
 
-## 💀 The basic idea
+<div align="center">
 
-```text
-        🧟 Creeper / Zombie / Skeleton / Custom Mob
-                         │
-                         │  player defeats mob
-                         ▼
-                        💀
-                         │
-             configured chance is rolled
-                         │
-                 ┌───────┴───────┐
-                 ▼               ▼
-              no drop       ⚙️ Slimefun loot!
-```
+**🧟 Defeat mob → 💀 roll chance → ⚙️ Slimefun loot. Simple and classic.**
 
-Simple, configurable, and still very much **SFMobDrops**.
-
----
-
-## ❤️ Credits
-
-- **WalshyDev** — original creator of SFMobDrops and the original addon concept/codebase.
-- **Slimefun contributors** — for the Slimefun platform and API this addon builds upon.
-- **Slimefun Legacy** — modern compatibility and preservation target for this maintenance fork.
-
-Please preserve the original attribution when redistributing modified builds.
+</div>
