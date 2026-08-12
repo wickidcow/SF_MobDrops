@@ -1,41 +1,64 @@
-<h1 align="center">SFMobDrops</h1>
+<h1 align="center">SFMobDrops Legacy</h1>
 
-<h3 align="center">Add Slimefun items to mob drops!</h3>
+<h3 align="center">Configurable Slimefun item drops for modern Paper / Slimefun Legacy servers.</h3>
 
-<!-- Badges -->
-<p align="center">
-    <a href="https://github.com/users/WalshyDev/sponsorship" target="_blank">
-        <img src="https://img.shields.io/badge/GitHub%20Sponsors-WalshyDev-orange.svg?style=flat-square" alt="GitHub Sponsors"/>
-    </a>
-    <a href="http://walshy.dev/donate" target="_blank">
-        <img src="https://img.shields.io/badge/PayPal-WalshyDev-blue.svg?style=flat-square" alt="Slack"/>
-    </a>
-</p>
+## About this fork
 
-<hr/>
+This repository preserves WalshyDev's original **SFMobDrops** plugin while updating it for the modern Slimefun Legacy stack used by AlbionMC.
 
-## Hello
+Original project and design credit belongs to **WalshyDev**. This fork focuses on maintenance and compatibility rather than replacing the original work.
 
-This repository is the source code and download page for SFMobDrops. A simple plugin to add Slimefun drops to any mob.
+## Current target
 
-## Contributing
+- Paper / Minecraft **26.2**
+- Java **25** build toolchain
+- Java **21** plugin bytecode
+- Slimefun Legacy-compatible Slimefun4 API
+- English configuration and command output
 
-Contributions are always welcome to this project!  
-Take a look at any existing issues on this repository for starting places to help contribute towards, or simply create your own new contribution to the project.
+## Legacy build changes
 
-Please make sure to follow the existing standards within the project such as code styles, naming conventions and commenting/documentation.
+- Updated the build from the old Spigot 1.17 / Slimefun RC-30 toolchain.
+- Removed the obsolete Blob Builds self-updater so this fork cannot silently replace itself with an incompatible upstream build.
+- Updated bStats and Java 25-compatible Lombok tooling.
+- Preserved existing mob-drop configuration support, including the older single-drop format.
+- Multiple matching drop definitions for the same mob can now apply instead of stopping at the first match.
+- Fixed named-mob matching so a configured custom name does not also match unnamed mobs.
+- Hardened numeric configuration parsing and GUI sizing for modern Paper.
 
-When you are ready, simply create a pull request for your contribution and I will review it whenever I can!
+## Building
 
-### Donating
+GitHub Actions builds the plugin as:
 
-You can also help me and the project out by sponsoring me through [GitHub Sponsors](https://github.com/users/WalshyDev/sponsorship) or by donating on [PayPal](https://walshy.dev/donate).
-<!-- Donation badges -->
-<p>
-    <a href="https://github.com/users/WalshyDev/sponsorship" target="_blank">
-        <img src="https://img.shields.io/badge/GitHub%20Sponsors-WalshyDev-orange.svg?style=flat-square" alt="GitHub Sponsors"/>
-    </a>
-    <a href="http://walshy.dev/donate" target="_blank">
-        <img src="https://img.shields.io/badge/PayPal-WalshyDev-blue.svg?style=flat-square" alt="Slack"/>
-    </a>
-</p>
+`SF_MobDrops_Legacy_v1.0.0.jar`
+
+The workflow uses the direct artifact mode, so the Actions output is the raw `.jar` file instead of a `.jar.zip` wrapper. Tagged builds also attach the same raw JAR directly to the GitHub Release.
+
+## Configuration
+
+SFMobDrops can add one or more Slimefun items to mob death drops. Existing configuration files remain supported.
+
+Example:
+
+```yaml
+drops:
+  - entity: ZOMBIE
+    drops:
+      - slimefunItem: MAGICAL_ZOMBIE_PILLS
+        chance: 5
+        amount: 1
+      - slimefunItem: IRON_DUST
+        chance: 1
+        amount: 1
+
+  - entity: ALL
+    drops:
+      - slimefunItem: COPPER_DUST
+        chance: 1
+```
+
+Optional `name` and `nbtTag` filters can further restrict which mobs qualify.
+
+## Credits
+
+SFMobDrops was created by **WalshyDev**. Please preserve original attribution when redistributing modified builds.
