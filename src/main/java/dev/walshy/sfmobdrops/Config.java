@@ -31,36 +31,35 @@ public class Config {
         }
 
         for (Map<String, Object> map : list) {
-            final MobDrop.MobDropBuilder builder = MobDrop.builder();
-
             final String entity = (String) map.get("entity");
             if (entity == null) {
                 logSkipMsg("'entity' is not defined");
                 continue;
             }
 
+            EntityType dropsFrom = null;
+            boolean allMobs = false;
+
             if (!Constants.CONSTANT.asMatchPredicate().test(entity)) {
                 logSkipMsg("'entity' should be in SCREAMING_SNAKE_CASE");
                 continue;
             } else if (entity.equals("ALL")) {
-                builder.allMobs(true);
+                allMobs = true;
             } else {
-                final EntityType type;
                 try {
-                    type = EntityType.valueOf(entity);
+                    dropsFrom = EntityType.valueOf(entity);
                 } catch (IllegalArgumentException ex) {
                     logSkipMsg("Invalid entity type: " + entity);
                     continue;
                 }
-
-                builder.dropsFrom(type);
             }
 
-            final String name = (String) map.get("name");
-            if (name != null) {
-                builder.entityName(ChatColor.translateAlternateColorCodes('&', name));
-            }
+            final String configuredName = (String) map.get("name");
+            final String entityName = configuredName == null
+                ? null
+                : ChatColor.translateAlternateColorCodes('&', configuredName);
 
+            NamespacedKey entityNbtTag = null;
             final String nbtTag = (String) map.get("nbtTag");
             if (nbtTag != null) {
                 if (!Constants.NAMESPACE.asMatchPredicate().test(nbtTag)) {
@@ -68,12 +67,11 @@ public class Config {
                     continue;
                 }
 
-                final NamespacedKey key = NamespacedKey.fromString(nbtTag);
-                if (key == null) {
+                entityNbtTag = NamespacedKey.fromString(nbtTag);
+                if (entityNbtTag == null) {
                     logSkipMsg("Invalid nbtTag: " + nbtTag);
                     continue;
                 }
-                builder.entityNbtTag(key);
             }
 
             final List<Map<String, Object>> dropsMap = (List<Map<String, Object>>) map.get("drops");
@@ -82,8 +80,7 @@ public class Config {
                 continue;
             }
 
-            builder.drops(drops);
-            mobDrops.add(builder.build());
+            mobDrops.add(new MobDrop(dropsFrom, allMobs, entityName, entityNbtTag, drops));
         }
 
         return mobDrops;
@@ -147,11 +144,7 @@ public class Config {
             return null;
         }
 
-        return Drop.builder()
-            .slimefunItem(slimefunId)
-            .chance(chance)
-            .amount(amount)
-            .build();
+        return new Drop(slimefunId, chance, amount);
     }
 
     @Nullable
