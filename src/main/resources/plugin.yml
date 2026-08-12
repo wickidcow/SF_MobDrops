@@ -1,12 +1,18 @@
 name: SFMobDrops
-description: Add random Slimefun mob drops
+description: Add configurable Slimefun item drops to mobs on Slimefun Legacy-compatible servers
 version: ${project.version}
-api-version: 1.14
+api-version: '26.2'
 author: WalshyDev
 main: dev.walshy.sfmobdrops.SfMobDrops
 depend: [Slimefun]
 
 commands:
   mobdrops:
-    description: Mob drops
+    description: Manage and view Slimefun mob drops
     aliases: [sfmobdrops, mobdrop, sfmd]
+    permission: sfmobdrops.admin
+
+permissions:
+  sfmobdrops.admin:
+    description: Allows access to SFMobDrops administrative commands
+    default: op
