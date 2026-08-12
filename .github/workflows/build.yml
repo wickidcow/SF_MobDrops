@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: sfmobdrops-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   LEGACY_ARTIFACT_VERSION: "1.0.0"
 
@@ -44,6 +48,11 @@ jobs:
 
           if grep -R --line-number '^import io\.github\.bakedlibs\.dough' src/main/java; then
             echo "Direct Dough imports should not be required by the Legacy build."
+            exit 1
+          fi
+
+          if grep -R --line-number -E '(^|[^[:alnum:]_])lombok([.;]|$)|@Builder|@Getter|@AllArgsConstructor' src/main/java pom.xml; then
+            echo "Lombok must not be required by the Java 25 Legacy build."
             exit 1
           fi
 
