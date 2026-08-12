@@ -1,28 +1,22 @@
 package dev.walshy.sfmobdrops;
 
-import io.github.bakedlibs.dough.updater.BlobBuildUpdater;
+import dev.walshy.sfmobdrops.drops.Drop;
+import dev.walshy.sfmobdrops.drops.MobDrop;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.core.debug.Debug;
-
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+import javax.annotation.Nonnull;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.java.JavaPluginLoader;
-
-import dev.walshy.sfmobdrops.drops.MobDrop;
-import dev.walshy.sfmobdrops.drops.Drop;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class SfMobDrops extends JavaPlugin implements Listener {
 
@@ -30,112 +24,112 @@ public class SfMobDrops extends JavaPlugin implements Listener {
 
     private static SfMobDrops instance;
 
-    private final Set<MobDrop> mobDrops = new HashSet<>();
-
+    private final Set<MobDrop> mobDrops = new LinkedHashSet<>();
     private Config config;
-    private boolean unitTest;
-
-    public SfMobDrops() {}
-
-    protected SfMobDrops(JavaPluginLoader loader, PluginDescriptionFile description, File dataFolder, File file) {
-        super(loader, description, dataFolder, file);
-        unitTest = true;
-    }
 
     @Override
     public void onEnable() {
         setInstance(this);
-        if (!new File(getDataFolder(), "config.yml").exists()) {
-            saveDefaultConfig();
+        saveDefaultConfig();
+
+        final Plugin slimefun = getServer().getPluginManager().getPlugin("Slimefun");
+        if (slimefun != null) {
+            getLogger().info("Connected to Slimefun runtime " + slimefun.getDescription().getVersion());
         }
 
-        if (getConfig().getBoolean("settings.autoUpdate", true)
-            && getDescription().getVersion().toLowerCase().startsWith("dev - ")
-        ) {
-            new BlobBuildUpdater(this, getFile(), "SFMobDrops").start();
-        }
+        new Metrics(this, 11950);
 
-        if (!unitTest) {
-            new Metrics(this, 11950);
-        }
-        
         config = new Config(this);
         loadDrops();
 
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new Guis(), this);
 
-        getCommand("mobdrops").setExecutor(new MobDropsCommand());
+        final PluginCommand command = getCommand("mobdrops");
+        if (command == null) {
+            getLogger().severe("The mobdrops command is missing from plugin.yml. Disabling SFMobDrops.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        command.setExecutor(new MobDropsCommand());
+
+        getLogger().info("SFMobDrops Legacy is enabled for Paper 26.2 / Slimefun Legacy-compatible runtimes.");
     }
 
     @Override
     public void onDisable() {
         setInstance(null);
     }
-    
-    protected void loadDrops() {
-        Set<MobDrop> newSet = config.loadConfig();
 
-        this.mobDrops.clear();
-        this.mobDrops.addAll(newSet);
-        getLogger().info("Loaded in " + this.mobDrops.size() + " drops!");
+    protected void loadDrops() {
+        final Set<MobDrop> newSet = config.loadConfig();
+
+        mobDrops.clear();
+        mobDrops.addAll(newSet);
+        getLogger().info("Loaded " + mobDrops.size() + " mob drop definitions.");
     }
 
     @EventHandler
-    public void onMobDeath(@Nonnull EntityDeathEvent e) {
-        final Set<Drop> drops = findDropsFromEntity(e.getEntity());
-        if (drops == null) return;
+    public void onMobDeath(@Nonnull EntityDeathEvent event) {
+        final Set<Drop> drops = findDropsFromEntity(event.getEntity());
+        if (drops.isEmpty()) {
+            return;
+        }
 
         Debug.log(DEBUG, "Found mob drop, has {} drops", drops.size());
 
         for (Drop drop : drops) {
-            double chance = ThreadLocalRandom.current().nextDouble(100);
+            final double chance = ThreadLocalRandom.current().nextDouble(100.0D);
 
             Debug.log(DEBUG, "Evaluating {} - {} <= {}", drop.getSlimefunItem(), chance, drop.getChance());
 
-            if (chance <= drop.getChance()) {
-                final SlimefunItem item = SlimefunItem.getById(drop.getSlimefunItem());
-
-                if (item != null && !item.isDisabledIn(e.getEntity().getWorld())) {
-                    final ItemStack dropping = item.getItem().clone();
-                    dropping.setAmount(drop.getAmount());
-
-                    Debug.log(DEBUG, "Dropping {}x {}", drop.getAmount(), drop.getSlimefunItem());
-                    e.getDrops().add(dropping);
-                }
+            if (chance > drop.getChance()) {
+                continue;
             }
+
+            final SlimefunItem item = SlimefunItem.getById(drop.getSlimefunItem());
+            if (item == null || item.isDisabledIn(event.getEntity().getWorld())) {
+                continue;
+            }
+
+            final ItemStack dropping = item.getItem().clone();
+            dropping.setAmount(drop.getAmount());
+
+            Debug.log(DEBUG, "Dropping {}x {}", drop.getAmount(), drop.getSlimefunItem());
+            event.getDrops().add(dropping);
         }
     }
 
-    @Nullable
+    @Nonnull
     private Set<Drop> findDropsFromEntity(@Nonnull LivingEntity entity) {
-        for (MobDrop mobDrop : this.getMobDrops()) {
-            if (mobDrop.isAllMobs() || entity.getType() == mobDrop.getDropsFrom()) {
-                if (mobDrop.getEntityName() != null && entity.getCustomName() != null
-                    && !mobDrop.getEntityName().equals(entity.getCustomName())
-                ) {
-                    continue;
-                }
+        final Set<Drop> matchingDrops = new LinkedHashSet<>();
 
-                if (mobDrop.getEntityNbtTag() != null && entity.getPersistentDataContainer().getKeys().stream()
-                    .noneMatch(key -> key.equals(mobDrop.getEntityNbtTag()))
-                ) {
-                    continue;
-                }
-
-                return mobDrop.getDrops();
+        for (MobDrop mobDrop : mobDrops) {
+            if (!mobDrop.isAllMobs() && entity.getType() != mobDrop.getDropsFrom()) {
+                continue;
             }
+
+            if (mobDrop.getEntityName() != null) {
+                final String customName = entity.getCustomName();
+                if (customName == null || !mobDrop.getEntityName().equals(customName)) {
+                    continue;
+                }
+            }
+
+            if (mobDrop.getEntityNbtTag() != null
+                && !entity.getPersistentDataContainer().getKeys().contains(mobDrop.getEntityNbtTag())) {
+                continue;
+            }
+
+            matchingDrops.addAll(mobDrop.getDrops());
         }
-        return null;
+
+        return matchingDrops;
     }
 
     @Nonnull
     public Set<MobDrop> getMobDrops() {
         return mobDrops;
-    }
-
-    public boolean isUnitTest() {
-        return unitTest;
     }
 
     @Nonnull
