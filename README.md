@@ -20,7 +20,7 @@ Original project and design credit belongs to **WalshyDev**. This fork focuses o
 
 - Updated the build from the old Spigot 1.17 / Slimefun RC-30 toolchain.
 - Removed the obsolete Blob Builds self-updater so this fork cannot silently replace itself with an incompatible upstream build.
-- Updated bStats and Java 25-compatible Lombok tooling.
+- Updated bStats and removed Lombok/annotation-processor dependence from the plugin data models.
 - Preserved existing mob-drop configuration support, including the older single-drop format.
 - Multiple matching drop definitions for the same mob can now apply instead of stopping at the first match.
 - Fixed named-mob matching so a configured custom name does not also match unnamed mobs.
