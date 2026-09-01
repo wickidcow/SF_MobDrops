@@ -11,8 +11,8 @@ permissions:
   contents: write
 
 env:
-  LEGACY_ARTIFACT_VERSION: "1.0.0"
-  OUTPUT_NAME: "SF_MobDrops1.0.0.jar"
+  LEGACY_ARTIFACT_VERSION: "1.0.1"
+  OUTPUT_NAME: "SF_MobDrops1.0.1.jar"
 
 concurrency:
   group: sfmobdrops-${{ github.workflow }}-${{ github.ref }}
@@ -30,8 +30,20 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
-      - name: Build SFMobDrops
+      - name: Verify compatibility metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq '<version>1.0.1</version>' pom.xml
+          grep -Fq '<paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>' pom.xml
+          grep -Fq '<maven.compiler.release>21</maven.compiler.release>' pom.xml
+          grep -Fq "api-version: '1.21.11'" src/main/resources/plugin.yml
+      - name: Verify Paper 1.21.11 compile baseline
         run: mvn -B -Dmaven.test.skip=true clean package --file pom.xml
+      - name: Verify Paper 26.2 compile compatibility
+        run: mvn -B -Dmaven.test.skip=true -Dpaper.version=26.2.build.111-stable clean package --file pom.xml
+      - name: Build release JAR from 1.21.11 baseline
+        run: mvn -B -Dmaven.test.skip=true -Dpaper.version=1.21.11-R0.1-SNAPSHOT clean package --file pom.xml
       - name: Stage versioned JAR
         shell: bash
         run: |
@@ -40,9 +52,11 @@ jobs:
           mapfile -t jars < <(find target -maxdepth 1 -type f -name '*.jar' ! -name 'original-*' ! -name '*-sources.jar' ! -name '*-javadoc.jar')
           test "${#jars[@]}" -eq 1
           cp "${jars[0]}" "dist/${OUTPUT_NAME}"
-          test -s "dist/${OUTPUT_NAME}"
-          jar tf "dist/${OUTPUT_NAME}" | grep -Fq 'plugin.yml'
-          sha256sum "dist/${OUTPUT_NAME}"
+          JAR="dist/${OUTPUT_NAME}"
+          test -s "$JAR"
+          unzip -p "$JAR" plugin.yml | grep -Fq "api-version: '1.21.11'"
+          javap -verbose -classpath "$JAR" dev.walshy.sfmobdrops.SfMobDrops | grep -Fq 'major version: 65'
+          sha256sum "$JAR"
       - name: Upload raw JAR artifact
         uses: actions/upload-artifact@v7
         with:
@@ -58,4 +72,5 @@ jobs:
           set -euo pipefail
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then TAG="$GITHUB_REF_NAME"; else TAG="v${LEGACY_ARTIFACT_VERSION}"; fi
           JAR="dist/${OUTPUT_NAME}"
-          if gh release view "$TAG" >/dev/null 2>&1; then gh release upload "$TAG" "$JAR" --clobber; else gh release create "$TAG" "$JAR" --target "$GITHUB_SHA" --generate-notes --title "SF_MobDrops $TAG"; fi
+          NOTES="Compatibility release for Minecraft/Purpur 1.21.11 through Paper/Purpur 26.2. Emits Java 21 bytecode and is compile-verified at both supported endpoints."
+          if gh release view "$TAG" >/dev/null 2>&1; then gh release upload "$TAG" "$JAR" --clobber; else gh release create "$TAG" "$JAR" --target "$GITHUB_SHA" --notes "$NOTES" --title "SF_MobDrops $TAG"; fi
