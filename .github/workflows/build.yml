@@ -61,7 +61,17 @@ jobs:
           grep -Fq '<version>1.0.2</version>' pom.xml
           grep -Fq '<paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>' pom.xml
           grep -Fq '<maven.compiler.release>21</maven.compiler.release>' pom.xml
+          grep -Fq '<artifactId>mockbukkit-v26.2</artifactId>' pom.xml
           grep -Fq "api-version: '1.21.11'" src/main/resources/plugin.yml
+
+      - name: Run MobDrops unit tests with MockBukkit 26.2 and Slimefun Legacy
+        run: >-
+          mvn -B
+          -Dpaper.version=26.2.build.111-stable
+          -Dslimefun.groupId=com.github.wickidcow
+          -Dslimefun.artifactId=Slimefun-Legacy
+          -Dslimefun.version=${SLIMEFUN_LEGACY_VERSION}
+          clean test --file pom.xml
 
       - name: Compile against Slimefun Legacy 4.1.46 / Paper 1.21.11
         run: >-
@@ -124,7 +134,7 @@ jobs:
           set -euo pipefail
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then TAG="$GITHUB_REF_NAME"; else TAG="v${LEGACY_ARTIFACT_VERSION}"; fi
           JAR="dist/${OUTPUT_NAME}"
-          NOTES="Slimefun Legacy compatibility release. Compiled directly against Slimefun Legacy ${SLIMEFUN_LEGACY_VERSION}, verified on Paper 1.21.11 and Paper 26.2, and emitted as Java 21 bytecode without shading Slimefun core classes."
+          NOTES="Slimefun Legacy compatibility release. Unit tests run on MockBukkit 26.2 with Slimefun Legacy ${SLIMEFUN_LEGACY_VERSION}; compilation is also verified on Paper 1.21.11 and Paper 26.2 with Java 21 bytecode and no shaded Slimefun core classes."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$JAR" --clobber
           else
