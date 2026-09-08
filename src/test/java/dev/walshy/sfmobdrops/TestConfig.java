@@ -2,13 +2,14 @@ package dev.walshy.sfmobdrops;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.EntityType;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockbukkit.mockbukkit.MockBukkit;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import dev.walshy.sfmobdrops.drops.MobDrop;
 import dev.walshy.sfmobdrops.drops.Drop;
+import dev.walshy.sfmobdrops.drops.MobDrop;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 
 public class TestConfig {
@@ -18,9 +19,13 @@ public class TestConfig {
     @BeforeAll
     public static void setup() {
         MockBukkit.mock();
-
         MockBukkit.load(Slimefun.class);
         instance = MockBukkit.load(SfMobDrops.class);
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        MockBukkit.unmock();
     }
 
     @Test
@@ -34,12 +39,12 @@ public class TestConfig {
         """);
 
         Assertions.assertEquals(1, instance.getMobDrops().size());
-        
+
         MobDrop mobDrop = instance.getMobDrops().iterator().next();
 
         Assertions.assertEquals(EntityType.ZOMBIE, mobDrop.getDropsFrom());
         Assertions.assertEquals(1, mobDrop.getDrops().size());
-        
+
         Drop drop = mobDrop.getDrops().iterator().next();
         Assertions.assertEquals("MAGIC_LUMP_1", drop.getSlimefunItem());
         Assertions.assertEquals(100, drop.getChance());
@@ -61,7 +66,7 @@ public class TestConfig {
         """);
 
         Assertions.assertEquals(1, instance.getMobDrops().size());
-        
+
         MobDrop mobDrop = instance.getMobDrops().iterator().next();
 
         Assertions.assertEquals(EntityType.ZOMBIE, mobDrop.getDropsFrom());
@@ -190,12 +195,12 @@ public class TestConfig {
         """);
 
         Assertions.assertEquals(1, instance.getMobDrops().size());
-        
+
         MobDrop mobDrop = instance.getMobDrops().iterator().next();
 
         Assertions.assertEquals(EntityType.ZOMBIE, mobDrop.getDropsFrom());
         Assertions.assertEquals(1, mobDrop.getDrops().size());
-        
+
         Drop drop = mobDrop.getDrops().iterator().next();
         Assertions.assertEquals("MAGIC_LUMP_1", drop.getSlimefunItem());
         Assertions.assertEquals(100, drop.getChance());
