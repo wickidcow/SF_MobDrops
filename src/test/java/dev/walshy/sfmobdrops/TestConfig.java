@@ -1,5 +1,8 @@
 package dev.walshy.sfmobdrops;
 
+import dev.walshy.sfmobdrops.drops.Drop;
+import dev.walshy.sfmobdrops.drops.MobDrop;
+import java.util.Set;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.EntityType;
 import org.junit.jupiter.api.AfterAll;
@@ -7,24 +10,19 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
-
-import dev.walshy.sfmobdrops.drops.Drop;
-import dev.walshy.sfmobdrops.drops.MobDrop;
+import org.mockbukkit.mockbukkit.plugin.PluginMock;
 
 public class TestConfig {
 
-    private static SfMobDrops instance;
+    private static PluginMock plugin;
+    private static Config parser;
+    private Set<MobDrop> mobDrops;
 
     @BeforeAll
     public static void setup() {
         MockBukkit.mock();
-        // MobDrops declares a hard dependency named "Slimefun" in plugin.yml.
-        // Slimefun Legacy's main class is final, so modern MockBukkit cannot proxy-load it.
-        // A named dependency mock satisfies plugin dependency resolution while the tests
-        // exercise MobDrops' own configuration and parsing behavior against the real
-        // Slimefun Legacy API classes on the test classpath.
-        MockBukkit.createMockPlugin("Slimefun", "4.1.46");
-        instance = MockBukkit.load(SfMobDrops.class);
+        plugin = MockBukkit.createMockPlugin("SFMobDropsConfigTests", "1.0.2");
+        parser = new Config(plugin);
     }
 
     @AfterAll
@@ -42,10 +40,8 @@ public class TestConfig {
                 chance: 100
         """);
 
-        Assertions.assertEquals(1, instance.getMobDrops().size());
-
-        MobDrop mobDrop = instance.getMobDrops().iterator().next();
-
+        Assertions.assertEquals(1, mobDrops.size());
+        MobDrop mobDrop = mobDrops.iterator().next();
         Assertions.assertEquals(EntityType.ZOMBIE, mobDrop.getDropsFrom());
         Assertions.assertEquals(1, mobDrop.getDrops().size());
 
@@ -69,28 +65,11 @@ public class TestConfig {
                 chance: 1
         """);
 
-        Assertions.assertEquals(1, instance.getMobDrops().size());
-
-        MobDrop mobDrop = instance.getMobDrops().iterator().next();
-
+        Assertions.assertEquals(1, mobDrops.size());
+        MobDrop mobDrop = mobDrops.iterator().next();
         Assertions.assertEquals(EntityType.ZOMBIE, mobDrop.getDropsFrom());
         Assertions.assertEquals(3, mobDrop.getDrops().size());
-
-        for (Drop drop : mobDrop.getDrops()) {
-            switch (drop.getSlimefunItem()) {
-                case "MAGIC_LUMP_1":
-                    Assertions.assertEquals(10, drop.getChance());
-                    break;
-                case "MAGIC_LUMP_2":
-                    Assertions.assertEquals(5, drop.getChance());
-                    break;
-                case "MAGIC_LUMP_3":
-                    Assertions.assertEquals(1, drop.getChance());
-                    break;
-                default:
-                    Assertions.fail("Unknown item: " + drop.getSlimefunItem());
-            }
-        }
+        assertChances(mobDrop);
     }
 
     @Test
@@ -105,10 +84,8 @@ public class TestConfig {
             amount: 6
         """);
 
-        Assertions.assertEquals(1, instance.getMobDrops().size());
-
-        MobDrop mobDrop = instance.getMobDrops().iterator().next();
-
+        Assertions.assertEquals(1, mobDrops.size());
+        MobDrop mobDrop = mobDrops.iterator().next();
         Assertions.assertEquals(EntityType.ENDER_DRAGON, mobDrop.getDropsFrom());
         Assertions.assertEquals(ChatColor.RED + "Amazing Dragon", mobDrop.getEntityName());
         Assertions.assertEquals("plugin_name:awesome_mob", mobDrop.getEntityNbtTag().toString());
@@ -139,30 +116,13 @@ public class TestConfig {
                 amount: 1
         """);
 
-        Assertions.assertEquals(1, instance.getMobDrops().size());
-
-        MobDrop mobDrop = instance.getMobDrops().iterator().next();
-
+        Assertions.assertEquals(1, mobDrops.size());
+        MobDrop mobDrop = mobDrops.iterator().next();
         Assertions.assertEquals(EntityType.ENDER_DRAGON, mobDrop.getDropsFrom());
         Assertions.assertEquals(ChatColor.RED + "Amazing Dragon", mobDrop.getEntityName());
         Assertions.assertEquals("plugin_name:awesome_mob", mobDrop.getEntityNbtTag().toString());
         Assertions.assertEquals(3, mobDrop.getDrops().size());
-
-        for (Drop drop : mobDrop.getDrops()) {
-            switch (drop.getSlimefunItem()) {
-                case "MAGIC_LUMP_1":
-                    Assertions.assertEquals(10, drop.getChance());
-                    break;
-                case "MAGIC_LUMP_2":
-                    Assertions.assertEquals(5, drop.getChance());
-                    break;
-                case "MAGIC_LUMP_3":
-                    Assertions.assertEquals(1, drop.getChance());
-                    break;
-                default:
-                    Assertions.fail("Unknown item: " + drop.getSlimefunItem());
-            }
-        }
+        assertChances(mobDrop);
     }
 
     @Test
@@ -174,10 +134,8 @@ public class TestConfig {
             chance: 50
         """);
 
-        Assertions.assertEquals(1, instance.getMobDrops().size());
-
-        MobDrop mobDrop = instance.getMobDrops().iterator().next();
-
+        Assertions.assertEquals(1, mobDrops.size());
+        MobDrop mobDrop = mobDrops.iterator().next();
         Assertions.assertNull(mobDrop.getDropsFrom());
         Assertions.assertTrue(mobDrop.isAllMobs());
         Assertions.assertEquals(1, mobDrop.getDrops().size());
@@ -188,7 +146,6 @@ public class TestConfig {
         Assertions.assertEquals(1, drop.getAmount());
     }
 
-    // -- Legacy -- //
     @Test
     public void testLoadConfig_legacySimpleItem() throws Exception {
         writeConfig("""
@@ -198,10 +155,8 @@ public class TestConfig {
             chance: 100
         """);
 
-        Assertions.assertEquals(1, instance.getMobDrops().size());
-
-        MobDrop mobDrop = instance.getMobDrops().iterator().next();
-
+        Assertions.assertEquals(1, mobDrops.size());
+        MobDrop mobDrop = mobDrops.iterator().next();
         Assertions.assertEquals(EntityType.ZOMBIE, mobDrop.getDropsFrom());
         Assertions.assertEquals(1, mobDrop.getDrops().size());
 
@@ -223,10 +178,8 @@ public class TestConfig {
             amount: 6
         """);
 
-        Assertions.assertEquals(1, instance.getMobDrops().size());
-
-        MobDrop mobDrop = instance.getMobDrops().iterator().next();
-
+        Assertions.assertEquals(1, mobDrops.size());
+        MobDrop mobDrop = mobDrops.iterator().next();
         Assertions.assertEquals(EntityType.ENDER_DRAGON, mobDrop.getDropsFrom());
         Assertions.assertEquals(ChatColor.RED + "Amazing Dragon", mobDrop.getEntityName());
         Assertions.assertEquals("plugin_name:awesome_mob", mobDrop.getEntityNbtTag().toString());
@@ -247,10 +200,8 @@ public class TestConfig {
             chance: 50
         """);
 
-        Assertions.assertEquals(1, instance.getMobDrops().size());
-
-        MobDrop mobDrop = instance.getMobDrops().iterator().next();
-
+        Assertions.assertEquals(1, mobDrops.size());
+        MobDrop mobDrop = mobDrops.iterator().next();
         Assertions.assertNull(mobDrop.getDropsFrom());
         Assertions.assertTrue(mobDrop.isAllMobs());
         Assertions.assertEquals(1, mobDrop.getDrops().size());
@@ -261,10 +212,19 @@ public class TestConfig {
         Assertions.assertEquals(1, drop.getAmount());
     }
 
-    // TODO: Validation tests
+    private static void assertChances(MobDrop mobDrop) {
+        for (Drop drop : mobDrop.getDrops()) {
+            switch (drop.getSlimefunItem()) {
+                case "MAGIC_LUMP_1" -> Assertions.assertEquals(10, drop.getChance());
+                case "MAGIC_LUMP_2" -> Assertions.assertEquals(5, drop.getChance());
+                case "MAGIC_LUMP_3" -> Assertions.assertEquals(1, drop.getChance());
+                default -> Assertions.fail("Unknown item: " + drop.getSlimefunItem());
+            }
+        }
+    }
 
     private void writeConfig(String str) throws Exception {
-        instance.getConfig().loadFromString(str);
-        instance.loadDrops();
+        plugin.getConfig().loadFromString(str);
+        mobDrops = parser.loadConfig();
     }
 }
