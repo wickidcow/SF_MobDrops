@@ -11,12 +11,13 @@ import javax.annotation.Nullable;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class Config {
 
-    private final SfMobDrops instance;
+    private final JavaPlugin instance;
 
-    public Config(SfMobDrops instance) {
+    public Config(JavaPlugin instance) {
         this.instance = instance;
     }
 
