@@ -6,7 +6,7 @@
 
     <groupId>dev.walshy</groupId>
     <artifactId>SFMobDrops</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -31,7 +31,7 @@
         <dependency><groupId>org.bstats</groupId><artifactId>bstats-bukkit</artifactId><version>3.2.1</version></dependency>
         <dependency><groupId>com.google.code.findbugs</groupId><artifactId>jsr305</artifactId><version>3.0.2</version><scope>provided</scope></dependency>
 
-        <!-- Keep the original test source compilable for compatibility-harness builds. -->
+        <!-- Retained so compatibility-harness builds can still compile the historical tests. -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -48,7 +48,7 @@
 
     <build>
         <defaultGoal>clean package</defaultGoal>
-        <finalName>SF_MobDrops_Legacy_v${project.version}</finalName>
+        <finalName>SF_MobDrops${project.version}</finalName>
         <sourceDirectory>src/main/java</sourceDirectory>
         <resources>
             <resource><directory>${basedir}/src/main/resources</directory><filtering>true</filtering><includes><include>*</include></includes></resource>
