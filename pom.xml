@@ -16,8 +16,8 @@
         <slimefun.groupId>com.github.SlimefunGuguProject</slimefun.groupId>
         <slimefun.artifactId>Slimefun4</slimefun.artifactId>
         <slimefun.version>2025.1</slimefun.version>
-        <junit.version>5.10.2</junit.version>
-        <mockbukkit.version>1.7.0</mockbukkit.version>
+        <junit.version>6.0.3</junit.version>
+        <mockbukkit.version>4.116.1</mockbukkit.version>
     </properties>
 
     <repositories>
@@ -31,7 +31,6 @@
         <dependency><groupId>org.bstats</groupId><artifactId>bstats-bukkit</artifactId><version>3.2.1</version></dependency>
         <dependency><groupId>com.google.code.findbugs</groupId><artifactId>jsr305</artifactId><version>3.0.2</version><scope>provided</scope></dependency>
 
-        <!-- Retained so compatibility-harness builds can still compile the historical tests. -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -39,8 +38,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.seeseemelk</groupId>
-            <artifactId>MockBukkit-v1.17</artifactId>
+            <groupId>org.mockbukkit.mockbukkit</groupId>
+            <artifactId>mockbukkit-v26.2</artifactId>
             <version>${mockbukkit.version}</version>
             <scope>test</scope>
         </dependency>
