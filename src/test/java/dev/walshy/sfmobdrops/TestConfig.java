@@ -10,7 +10,6 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 
 import dev.walshy.sfmobdrops.drops.Drop;
 import dev.walshy.sfmobdrops.drops.MobDrop;
-import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 
 public class TestConfig {
 
@@ -19,7 +18,12 @@ public class TestConfig {
     @BeforeAll
     public static void setup() {
         MockBukkit.mock();
-        MockBukkit.load(Slimefun.class);
+        // MobDrops declares a hard dependency named "Slimefun" in plugin.yml.
+        // Slimefun Legacy's main class is final, so modern MockBukkit cannot proxy-load it.
+        // A named dependency mock satisfies plugin dependency resolution while the tests
+        // exercise MobDrops' own configuration and parsing behavior against the real
+        // Slimefun Legacy API classes on the test classpath.
+        MockBukkit.createMockPlugin("Slimefun", "4.1.46");
         instance = MockBukkit.load(SfMobDrops.class);
     }
 
