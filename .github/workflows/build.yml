@@ -11,8 +11,8 @@ permissions:
   contents: write
 
 env:
-  LEGACY_ARTIFACT_VERSION: "1.0.2"
-  OUTPUT_NAME: "SF_MobDrops1.0.2.jar"
+  LEGACY_ARTIFACT_VERSION: "1.0.3"
+  OUTPUT_NAME: "SF_MobDrops1.0.3.jar"
   SLIMEFUN_LEGACY_VERSION: "4.1.46"
 
 concurrency:
@@ -40,25 +40,16 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p legacy-deps
-          gh release download "v${SLIMEFUN_LEGACY_VERSION}" \
-            --repo wickidcow/Slimefun-Legacy \
-            --pattern "Slimefun-Legacy${SLIMEFUN_LEGACY_VERSION}.jar" \
-            --dir legacy-deps
+          gh release download "v${SLIMEFUN_LEGACY_VERSION}" --repo wickidcow/Slimefun-Legacy --pattern "Slimefun-Legacy${SLIMEFUN_LEGACY_VERSION}.jar" --dir legacy-deps
           LEGACY_JAR="legacy-deps/Slimefun-Legacy${SLIMEFUN_LEGACY_VERSION}.jar"
           test -s "$LEGACY_JAR"
-          mvn -B install:install-file \
-            -Dfile="$LEGACY_JAR" \
-            -DgroupId=com.github.wickidcow \
-            -DartifactId=Slimefun-Legacy \
-            -Dversion="${SLIMEFUN_LEGACY_VERSION}" \
-            -Dpackaging=jar \
-            -DgeneratePom=true
+          mvn -B install:install-file -Dfile="$LEGACY_JAR" -DgroupId=com.github.wickidcow -DartifactId=Slimefun-Legacy -Dversion="${SLIMEFUN_LEGACY_VERSION}" -Dpackaging=jar -DgeneratePom=true
 
       - name: Verify compatibility metadata
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq '<version>1.0.2</version>' pom.xml
+          grep -Fq '<version>1.0.3</version>' pom.xml
           grep -Fq '<paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>' pom.xml
           grep -Fq '<maven.compiler.release>21</maven.compiler.release>' pom.xml
           grep -Fq '<artifactId>mockbukkit-v26.2</artifactId>' pom.xml
@@ -67,13 +58,13 @@ jobs:
       - name: Run MobDrops unit tests with MockBukkit 26.2 and Slimefun Legacy
         run: >-
           mvn -B
-          -Dpaper.version=26.2.build.111-stable
+          -Dpaper.version=26.2.build.112-stable
           -Dslimefun.groupId=com.github.wickidcow
           -Dslimefun.artifactId=Slimefun-Legacy
           -Dslimefun.version=${SLIMEFUN_LEGACY_VERSION}
           clean test --file pom.xml
 
-      - name: Compile against Slimefun Legacy 4.1.46 / Paper 1.21.11
+      - name: Compile against Slimefun Legacy / Paper 1.21.11
         run: >-
           mvn -B -Dmaven.test.skip=true
           -Dpaper.version=1.21.11-R0.1-SNAPSHOT
@@ -82,19 +73,28 @@ jobs:
           -Dslimefun.version=${SLIMEFUN_LEGACY_VERSION}
           clean package --file pom.xml
 
-      - name: Compile against Slimefun Legacy 4.1.46 / Paper 26.2
+      - name: Compile against Slimefun Legacy / Paper 26.2
         run: >-
           mvn -B -Dmaven.test.skip=true
-          -Dpaper.version=26.2.build.111-stable
+          -Dpaper.version=26.2.build.112-stable
           -Dslimefun.groupId=com.github.wickidcow
           -Dslimefun.artifactId=Slimefun-Legacy
           -Dslimefun.version=${SLIMEFUN_LEGACY_VERSION}
           clean package --file pom.xml
 
-      - name: Build release JAR against primary Paper 26.2 target
+      - name: Compile against Slimefun Legacy / Paper 26.3 alpha
         run: >-
           mvn -B -Dmaven.test.skip=true
-          -Dpaper.version=26.2.build.111-stable
+          -Dpaper.version=26.3-rc-3.build.1-alpha
+          -Dslimefun.groupId=com.github.wickidcow
+          -Dslimefun.artifactId=Slimefun-Legacy
+          -Dslimefun.version=${SLIMEFUN_LEGACY_VERSION}
+          clean package --file pom.xml
+
+      - name: Build universal release JAR from Paper 1.21.11 baseline
+        run: >-
+          mvn -B -Dmaven.test.skip=true
+          -Dpaper.version=1.21.11-R0.1-SNAPSHOT
           -Dslimefun.groupId=com.github.wickidcow
           -Dslimefun.artifactId=Slimefun-Legacy
           -Dslimefun.version=${SLIMEFUN_LEGACY_VERSION}
@@ -109,13 +109,10 @@ jobs:
           test -s "$SOURCE"
           cp "$SOURCE" "dist/${OUTPUT_NAME}"
           JAR="dist/${OUTPUT_NAME}"
-          unzip -p "$JAR" plugin.yml | grep -Fq 'version: 1.0.2'
+          unzip -p "$JAR" plugin.yml | grep -Fq 'version: 1.0.3'
           unzip -p "$JAR" plugin.yml | grep -Fq "api-version: '1.21.11'"
           javap -verbose -classpath "$JAR" dev.walshy.sfmobdrops.SfMobDrops | grep -Fq 'major version: 65'
-          if jar tf "$JAR" | grep -q '^io/github/thebusybiscuit/slimefun4/'; then
-            echo 'Slimefun core classes must not be shaded into MobDrops.' >&2
-            exit 1
-          fi
+          if jar tf "$JAR" | grep -q '^io/github/thebusybiscuit/slimefun4/'; then echo 'Slimefun core classes must not be shaded into MobDrops.' >&2; exit 1; fi
           sha256sum "$JAR"
 
       - name: Upload raw JAR artifact
@@ -134,9 +131,5 @@ jobs:
           set -euo pipefail
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then TAG="$GITHUB_REF_NAME"; else TAG="v${LEGACY_ARTIFACT_VERSION}"; fi
           JAR="dist/${OUTPUT_NAME}"
-          NOTES="Slimefun Legacy compatibility release. Unit tests run on MockBukkit 26.2 with Slimefun Legacy ${SLIMEFUN_LEGACY_VERSION}; compilation is also verified on Paper 1.21.11 and Paper 26.2 with Java 21 bytecode and no shaded Slimefun core classes."
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$JAR" --clobber
-          else
-            gh release create "$TAG" "$JAR" --target "$GITHUB_SHA" --notes "$NOTES" --title "SF_MobDrops $TAG"
-          fi
+          NOTES="MobDrops 1.0.3 keeps its MockBukkit 26.2 unit tests and Slimefun Legacy validation, adds Paper 26.3 alpha compile compatibility, and now builds the distributed Java 21 JAR from the Paper 1.21.11 baseline."
+          if gh release view "$TAG" >/dev/null 2>&1; then gh release upload "$TAG" "$JAR" --clobber; else gh release create "$TAG" "$JAR" --target "$GITHUB_SHA" --notes "$NOTES" --title "SF_MobDrops $TAG"; fi
