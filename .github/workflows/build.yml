@@ -11,8 +11,8 @@ permissions:
   contents: write
 
 env:
-  LEGACY_ARTIFACT_VERSION: "1.0.3"
-  OUTPUT_NAME: "SF_MobDrops1.0.3.jar"
+  LEGACY_ARTIFACT_VERSION: "1.0.4"
+  OUTPUT_NAME: "SF_MobDrops1.0.4.jar"
   SLIMEFUN_LEGACY_VERSION: "4.1.46"
 
 concurrency:
@@ -49,9 +49,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq '<version>1.0.3</version>' pom.xml
+          grep -Fq '<version>1.0.4</version>' pom.xml
           grep -Fq '<paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>' pom.xml
           grep -Fq '<maven.compiler.release>21</maven.compiler.release>' pom.xml
+          grep -Fq '<fork>true</fork>' pom.xml
           grep -Fq '<artifactId>mockbukkit-v26.2</artifactId>' pom.xml
           grep -Fq "api-version: '1.21.11'" src/main/resources/plugin.yml
 
@@ -109,7 +110,7 @@ jobs:
           test -s "$SOURCE"
           cp "$SOURCE" "dist/${OUTPUT_NAME}"
           JAR="dist/${OUTPUT_NAME}"
-          unzip -p "$JAR" plugin.yml | grep -Fq 'version: 1.0.3'
+          unzip -p "$JAR" plugin.yml | grep -Fq 'version: 1.0.4'
           unzip -p "$JAR" plugin.yml | grep -Fq "api-version: '1.21.11'"
           javap -verbose -classpath "$JAR" dev.walshy.sfmobdrops.SfMobDrops | grep -Fq 'major version: 65'
           if jar tf "$JAR" | grep -q '^io/github/thebusybiscuit/slimefun4/'; then echo 'Slimefun core classes must not be shaded into MobDrops.' >&2; exit 1; fi
@@ -131,5 +132,5 @@ jobs:
           set -euo pipefail
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then TAG="$GITHUB_REF_NAME"; else TAG="v${LEGACY_ARTIFACT_VERSION}"; fi
           JAR="dist/${OUTPUT_NAME}"
-          NOTES="MobDrops 1.0.3 keeps its MockBukkit 26.2 unit tests and Slimefun Legacy validation, adds Paper 26.3 alpha compile compatibility, and now builds the distributed Java 21 JAR from the Paper 1.21.11 baseline."
+          NOTES="MobDrops 1.0.4 keeps the existing gameplay and Java 21 release baseline, forks javac for reliable Java 25 / Paper 26.3 compatibility compilation, and remains validated against Slimefun Legacy."
           if gh release view "$TAG" >/dev/null 2>&1; then gh release upload "$TAG" "$JAR" --clobber; else gh release create "$TAG" "$JAR" --target "$GITHUB_SHA" --notes "$NOTES" --title "SF_MobDrops $TAG"; fi
