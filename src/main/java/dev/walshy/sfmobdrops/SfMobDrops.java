@@ -34,7 +34,7 @@ public class SfMobDrops extends JavaPlugin implements Listener {
 
         final Plugin slimefun = getServer().getPluginManager().getPlugin("Slimefun");
         if (slimefun != null) {
-            getLogger().info("Connected to Slimefun runtime " + slimefun.getDescription().getVersion());
+            getLogger().info("Connected to Slimefun runtime " + slimefun.getPluginMeta().getVersion());
         }
 
         new Metrics(this, 11950);
@@ -53,7 +53,7 @@ public class SfMobDrops extends JavaPlugin implements Listener {
         }
         command.setExecutor(new MobDropsCommand());
 
-        getLogger().info("SFMobDrops Legacy is enabled for Paper 26.2 / Slimefun Legacy-compatible runtimes.");
+        getLogger().info("SFMobDrops Legacy is enabled for Paper 1.21.11+ / Slimefun Legacy-compatible runtimes.");
     }
 
     @Override
