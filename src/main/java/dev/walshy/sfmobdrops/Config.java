@@ -8,12 +8,13 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Config {
+
+    private static final String LEGACY_COLOR_CODES = "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx";
 
     private final JavaPlugin instance;
 
@@ -58,7 +59,7 @@ public class Config {
             final String configuredName = (String) map.get("name");
             final String entityName = configuredName == null
                 ? null
-                : ChatColor.translateAlternateColorCodes('&', configuredName);
+                : translateLegacyColorCodes(configuredName);
 
             NamespacedKey entityNbtTag = null;
             final String nbtTag = (String) map.get("nbtTag");
@@ -151,6 +152,17 @@ public class Config {
     @Nullable
     private Number asNumber(@Nullable Object value) {
         return value instanceof Number ? (Number) value : null;
+    }
+
+    private static String translateLegacyColorCodes(@Nonnull String text) {
+        final char[] chars = text.toCharArray();
+        for (int i = 0; i < chars.length - 1; i++) {
+            if (chars[i] == '&' && LEGACY_COLOR_CODES.indexOf(chars[i + 1]) >= 0) {
+                chars[i] = '\u00A7';
+                chars[i + 1] = Character.toLowerCase(chars[i + 1]);
+            }
+        }
+        return new String(chars);
     }
 
     private void logSkipMsg(@Nonnull String reason) {

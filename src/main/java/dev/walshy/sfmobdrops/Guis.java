@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -22,7 +24,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public final class Guis implements Listener {
 
-    private static final String TITLE = ChatColor.DARK_PURPLE + "Mob Drops";
+    private static final LegacyComponentSerializer LEGACY_SECTION = LegacyComponentSerializer.legacySection();
+    private static final Component TITLE = Component.text("Mob Drops", NamedTextColor.DARK_PURPLE);
     private static final int MAX_GUI_SIZE = 54;
 
     protected Guis() {}
@@ -45,31 +48,43 @@ public final class Guis implements Listener {
             );
             final ItemMeta itemMeta = itemStack.getItemMeta();
 
-            itemMeta.setDisplayName(
+            itemMeta.displayName(
                 mobDrop.getEntityName() != null
-                    ? mobDrop.getEntityName()
+                    ? legacy(mobDrop.getEntityName())
                     : mobDrop.isAllMobs()
-                        ? ChatColor.GOLD + "All Mobs"
+                        ? Component.text("All Mobs", NamedTextColor.GOLD)
                         : getEntity(mobDrop.getDropsFrom())
             );
 
-            final List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.GRAY + "Drops:");
-            lore.add("");
+            final List<Component> lore = new ArrayList<>();
+            lore.add(Component.text("Drops:", NamedTextColor.GRAY));
+            lore.add(Component.empty());
             for (Drop drop : mobDrop.getDrops()) {
-                lore.add(ChatColor.GRAY + "" + drop.getAmount() + "x " + ChatColor.GOLD + drop.getSlimefunItem());
-                lore.add(ChatColor.LIGHT_PURPLE + "" + drop.getChance() + "% " + ChatColor.GRAY + "chance");
-                lore.add("");
+                lore.add(
+                    Component.text(drop.getAmount() + "x ", NamedTextColor.GRAY)
+                        .append(Component.text(drop.getSlimefunItem(), NamedTextColor.GOLD))
+                );
+                lore.add(
+                    Component.text(drop.getChance() + "% ", NamedTextColor.LIGHT_PURPLE)
+                        .append(Component.text("chance", NamedTextColor.GRAY))
+                );
+                lore.add(Component.empty());
             }
 
             if (mobDrop.getEntityName() != null) {
-                lore.add(ChatColor.GRAY + "Requires name: " + mobDrop.getEntityName());
+                lore.add(
+                    Component.text("Requires name: ", NamedTextColor.GRAY)
+                        .append(legacy(mobDrop.getEntityName()))
+                );
             }
             if (mobDrop.getEntityNbtTag() != null) {
-                lore.add(ChatColor.GRAY + "Requires tag: " + ChatColor.LIGHT_PURPLE + mobDrop.getEntityNbtTag());
+                lore.add(
+                    Component.text("Requires tag: ", NamedTextColor.GRAY)
+                        .append(Component.text(mobDrop.getEntityNbtTag().toString(), NamedTextColor.LIGHT_PURPLE))
+                );
             }
 
-            itemMeta.setLore(lore);
+            itemMeta.lore(lore);
             itemStack.setItemMeta(itemMeta);
             inv.addItem(itemStack);
             added++;
@@ -77,7 +92,8 @@ public final class Guis implements Listener {
 
         if (drops.size() > size) {
             player.sendMessage(
-                ChatColor.YELLOW + "Showing the first " + size + " mob drop definitions. GUI paging is not available yet."
+                Component.text("Showing the first " + size + " mob drop definitions. GUI paging is not available yet.",
+                    NamedTextColor.YELLOW)
             );
         }
 
@@ -97,9 +113,15 @@ public final class Guis implements Listener {
         return material != null ? material : Material.SPAWNER;
     }
 
-    private static String getEntity(@Nonnull EntityType type) {
-        return ChatColor.LIGHT_PURPLE
-            + capitalise((type.name().charAt(0) + type.name().substring(1)).replace('_', ' ').toLowerCase(Locale.ROOT));
+    private static Component getEntity(@Nonnull EntityType type) {
+        return Component.text(
+            capitalise((type.name().charAt(0) + type.name().substring(1)).replace('_', ' ').toLowerCase(Locale.ROOT)),
+            NamedTextColor.LIGHT_PURPLE
+        );
+    }
+
+    private static Component legacy(@Nonnull String text) {
+        return LEGACY_SECTION.deserialize(text);
     }
 
     private static String capitalise(String str) {
@@ -123,7 +145,7 @@ public final class Guis implements Listener {
 
     @EventHandler
     public void onInvClick(@Nonnull InventoryClickEvent event) {
-        if (event.getView().getTitle().equals(TITLE)) {
+        if (event.getView().title().equals(TITLE)) {
             event.setCancelled(true);
             event.setResult(Event.Result.DENY);
         }
