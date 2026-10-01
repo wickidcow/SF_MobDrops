@@ -1,5 +1,5 @@
 name: SFMobDrops
-description: Add configurable Slimefun item drops to mobs on Minecraft 1.21.11 through 26.2 servers
+description: Add configurable Slimefun item drops to mobs on Minecraft 1.21.11+ servers
 version: ${project.version}
 api-version: '1.21.11'
 author: WalshyDev
