@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   LEGACY_ARTIFACT_VERSION: "1.0.4"
@@ -25,6 +25,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
+      - name: Reject automatic release publication and clobber
+        run: python3 -m unittest discover -s scripts -p 'test_release_safety.py' -v
 
       - name: Set up Java 25
         uses: actions/setup-java@v5
@@ -123,14 +126,3 @@ jobs:
           archive: false
           if-no-files-found: error
 
-      - name: Publish raw JAR release asset
-        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') || github.ref_name == github.event.repository.default_branch
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then TAG="$GITHUB_REF_NAME"; else TAG="v${LEGACY_ARTIFACT_VERSION}"; fi
-          JAR="dist/${OUTPUT_NAME}"
-          NOTES="MobDrops 1.0.4 keeps the existing gameplay and Java 21 release baseline, forks javac for reliable Java 25 / Paper 26.3 compatibility compilation, and remains validated against Slimefun Legacy."
-          if gh release view "$TAG" >/dev/null 2>&1; then gh release upload "$TAG" "$JAR" --clobber; else gh release create "$TAG" "$JAR" --target "$GITHUB_SHA" --notes "$NOTES" --title "SF_MobDrops $TAG"; fi
